@@ -7,6 +7,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
@@ -34,31 +36,43 @@ public abstract class AbstractLogin {
 	private String password;
 	/** 验证码 **/
 	private String authCode;
+	/** 登录前准备的参数 **/
+	protected Map<String, String> readyParams;
 
 	public AbstractLogin(String userName, String password) {
 		this.userName = userName;
 		this.password = password;
 
+		readyParams = new HashMap<String, String>();
 		userClient = ConnectionManager.getHttpClient();
 		mapper = new ObjectMapper();
 	}
 
 	/**
-	 * 登陆
+	 * 登陆 分成4个步骤： 1.为登录准备必要的参数 2.获取验证码 3.执行登录 4.验证登录成功
 	 */
 	public void login() {
 		try {
+			readyLogin();
+
 			getAuthCodeImage();
 			getInputAuthCode();
 
 			int result = executeLogin();
 			if (result == Constants.SUCCESS) {
-
+				testLogin();
 			}
 		} catch (Exception e) {
 			logger.error("登陆异常", e);
 		}
 	}
+
+	/**
+	 * 准备登录
+	 * 
+	 * @throws Exception
+	 */
+	protected abstract void readyLogin() throws Exception;
 
 	/**
 	 * 执行登陆
@@ -85,7 +99,9 @@ public abstract class AbstractLogin {
 		InputStream is = null;
 		OutputStream os = null;
 		try {
-			getImage = new HttpGet(getAuthCodeImageUrl());
+			String imageUrl = getAuthCodeImageUrl();
+			logger.info("请求login-->" + imageUrl);
+			getImage = new HttpGet(imageUrl);
 			response = userClient.execute(getImage);
 
 			String savePath = getSavePath(getSaveImageRelativePathPath());
@@ -131,6 +147,13 @@ public abstract class AbstractLogin {
 			getInputAuthCode();
 		}
 	}
+
+	/**
+	 * 获取准备登录地址
+	 * 
+	 * @return
+	 */
+	protected abstract String getReadyLoginUrl();
 
 	/**
 	 * 获取验证码图片地址

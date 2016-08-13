@@ -14,12 +14,15 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.select.Elements;
 import org.simulationlogin.login.AbstractLogin;
 import org.simulationlogin.util.Constants;
 import org.simulationlogin.util.PwEncryption;
 
 /**
- * 开源中国模拟登陆
+ * 模拟开源中国登陆
  * 
  * @author zhaohui
  * 
@@ -30,6 +33,11 @@ public class OschinaLogin extends AbstractLogin {
 
 	public OschinaLogin(String userName, String password) {
 		super(userName, password);
+	}
+
+	@Override
+	protected void readyLogin() throws Exception {
+
 	}
 
 	@Override
@@ -53,16 +61,21 @@ public class OschinaLogin extends AbstractLogin {
 			HttpResponse response = getUserClient().execute(loginPost);
 			String loginRespInfoStr = EntityUtils.toString(
 					response.getEntity(), Charset.forName("utf-8"));
+			logger.info(loginRespInfoStr);
 			if (loginRespInfoStr.equals("")) {
 				return Constants.SUCCESS;
 			}
-			logger.info(loginRespInfoStr);
 			return Constants.FAIL;
 		} catch (Exception e) {
 			throw e;
 		} finally {
 			loginPost.releaseConnection();
 		}
+	}
+
+	@Override
+	protected String getReadyLoginUrl() {
+		return null;
 	}
 
 	@Override
@@ -83,7 +96,12 @@ public class OschinaLogin extends AbstractLogin {
 
 		HttpResponse response = getUserClient().execute(loginUrlGet);
 		String info = EntityUtils.toString(response.getEntity());
-		logger.info(info);
+
+		Document doc = Jsoup.parseBodyFragment(info);
+		Elements es = doc.select("#OSC_Userbar > em");
+		if (es != null && es.size() > 0) {
+			logger.info("用户名:" + es.get(0).text());
+		}
 	}
 
 }
