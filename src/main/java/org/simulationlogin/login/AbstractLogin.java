@@ -26,8 +26,7 @@ public abstract class AbstractLogin {
 	private static Log logger = LogFactory.getLog(AbstractLogin.class);
 
 	/** 图片存放的根目录 */
-	public final String IMG_ROOT_PATH = System.getProperty("user.dir")
-			+ File.separator;
+	public final String IMG_ROOT_PATH = System.getProperty("user.dir") + File.separator;
 
 	private DefaultHttpClient userClient;
 	private ObjectMapper mapper;
@@ -93,7 +92,7 @@ public abstract class AbstractLogin {
 	 * 
 	 * @throws Exception
 	 */
-	private void getAuthCodeImage() throws Exception {
+	protected void getAuthCodeImage() throws Exception {
 		HttpGet getImage = null;
 		HttpResponse response = null;
 		InputStream is = null;
@@ -101,7 +100,6 @@ public abstract class AbstractLogin {
 		try {
 			String imageUrl = getAuthCodeImageUrl();
 			logger.info("请求login-->" + imageUrl);
-			getImage = new HttpGet(imageUrl);
 			response = userClient.execute(getImage);
 
 			String savePath = getSavePath(getSaveImageRelativePathPath());
@@ -136,10 +134,9 @@ public abstract class AbstractLogin {
 	 * 
 	 * @throws IOException
 	 */
-	private void getInputAuthCode() throws Exception {
+	protected void getInputAuthCode() throws Exception {
 		logger.info("请输入下载图片中的验证码[o:重新获取一张]:");
-		BufferedReader strin = new BufferedReader(new InputStreamReader(
-				System.in));
+		BufferedReader strin = new BufferedReader(new InputStreamReader(System.in));
 		authCode = strin.readLine();
 
 		if (authCode.equals("o")) {
@@ -176,7 +173,7 @@ public abstract class AbstractLogin {
 	 *            图片被保存的相对路径
 	 * @return
 	 */
-	private String getSavePath(String imgRelativePath) {
+	protected String getSavePath(String imgRelativePath) {
 		return IMG_ROOT_PATH + imgRelativePath + File.separator;
 	}
 
